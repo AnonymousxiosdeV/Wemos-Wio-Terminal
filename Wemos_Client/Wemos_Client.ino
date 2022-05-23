@@ -9,13 +9,18 @@ const char* password = "123456789";
 AsyncWebServer server(80);
 
 String readState() {
-  return String(digitalRead(5));
+ if (digitalRead(5) == HIGH){
+  return String("On");
+ } else {
+  return String("Off");
+ }
 }
 
 void setup(){
   // Serial port for debugging purposes
   Serial.begin(115200);
   Serial.println();
+  pinMode(5,OUTPUT);
   
   // Setting the ESP as an access point
   Serial.print("Setting AP (Access Point)…");

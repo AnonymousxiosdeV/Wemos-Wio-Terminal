@@ -15,6 +15,7 @@ const char* serverOn = "http://192.168.4.1/on";
 const char* serverOff = "http://192.168.4.1/off";
 
 String State;
+bool isOn;
 
 unsigned long previousMillis = 0;
 const long interval = 5000; 
@@ -58,8 +59,11 @@ void setup() {
     delay(500);
     Serial.print(".");
   }
+  tft.fillScreen(TFT_BLACK);
+  isOn = true;
   Serial.println("");
   Serial.println("Connected to WiFi");
+  reDraw();
 }
 
 void loop() {
@@ -70,38 +74,7 @@ void loop() {
   
     if ((WiFi.status() == WL_CONNECTED)) {
       State = httpGETRequest(serverState);
-      
-      display.clearDisplay();
-      
-      // display temperature
-      display.setTextSize(2);
-      display.setCursor(0,0);
-      display.print("T: ");
-      display.print(temperature);
-      display.print(" ");
-      display.setTextSize(1);
-      display.cp437(true);
-      display.write(248);
-      display.setTextSize(2);
-      display.print("C");
-      
-      // display humidity
-      display.setTextSize(2);
-      display.setCursor(0, 25);
-      display.print("H: ");
-      display.print(humidity);
-      display.print(" %"); 
-      
-      // display pressure
-      display.setTextSize(2);
-      display.setCursor(0, 50);
-      display.print("P:");
-      display.print(pressure);
-      display.setTextSize(1);
-      display.setCursor(110, 56);
-      display.print("hPa");
-           
-      display.display();
+      reDraw();
       
       // save the last HTTP GET Request
       previousMillis = currentMillis;
@@ -154,34 +127,18 @@ void reDraw() {
     tft.drawNumber(brightness, (tft.width() / 4) + (tft.textWidth("Brightness: ") / 2), ((tft.height() / 4) + (tft.fontHeight() * 1.5)));
    ******/
 
-  tft.drawString("Power: ", 15, (tft.height() / 4));
+  tft.drawString("WiFi: ", 15, (tft.height() / 4));
   if (isOn) {
-    coverText((tft.textWidth("Power: ") + 15) , (tft.height() / 4), tft.textWidth("OFF"), tft.fontHeight());
-    tft.drawString("ON", (tft.textWidth("Power: ") + 15), (tft.height() / 4));
+    coverText((tft.textWidth("WiFi: ") + 15) , (tft.height() / 4), tft.textWidth("Is Connected"), tft.fontHeight());
+    tft.drawString("Is Connected", (tft.textWidth("WiFi: ") + 15), (tft.height() / 4));
   } else {
-    coverText((tft.textWidth("Power: ") + 15), (tft.height() / 4), tft.textWidth("OFF"), tft.fontHeight());
-    tft.drawString("OFF", (tft.textWidth("Power: ") + 15) , (tft.height() / 4));
+    coverText((tft.textWidth("WiFi: ") + 15), (tft.height() / 4), tft.textWidth("Not Connected"), tft.fontHeight());
+    tft.drawString("Not Connected", (tft.textWidth("WiFi: ") + 15) , (tft.height() / 4));
   }
 
-  tft.drawString("Brightness: ", 15, ((tft.height() / 4) + (tft.fontHeight() * 1.5)) );
-  coverText((tft.textWidth("Brightness: ") + 15), ((tft.height() / 4) + (tft.fontHeight() * 1.5)), tft.textWidth("5555"), tft.fontHeight());
-  tft.drawNumber(brightness, (tft.textWidth("Brightness: ") + 15), ((tft.height() / 4) + (tft.fontHeight() * 1.5)));
-
-  tft.drawString("Hue: ", 15, ((tft.height() / 4) + (tft.fontHeight() * 3)) );
-  coverText((tft.textWidth("Hue: ") + 15), ((tft.height() / 4) + (tft.fontHeight() * 3)), tft.textWidth("5555"), tft.fontHeight());
-  tft.drawNumber(hue, (tft.textWidth("Hue: ") + 15), ((tft.height() / 4) + (tft.fontHeight() * 3)));
-
-  tft.drawString("Saturation: ", 15, ((tft.height() / 4) + (tft.fontHeight() * 4.5)) );
-  coverText((tft.textWidth("Saturation: ") + 15), ((tft.height() / 4) + (tft.fontHeight() * 4.5)), tft.textWidth("5555"), tft.fontHeight());
-  tft.drawNumber(saturation, (tft.textWidth("Saturation: ") + 15), ((tft.height() / 4) + (tft.fontHeight() * 4.5)));
-
-  tft.drawString("Speed: ", 15, ((tft.height() / 4) + (tft.fontHeight() * 6)) );
-  coverText((tft.textWidth("Speed: ") + 15), ((tft.height() / 4) + (tft.fontHeight() * 6)), tft.textWidth("5555"), tft.fontHeight());
-  tft.drawNumber(speedE, (tft.textWidth("Speed: ") + 15), ((tft.height() / 4) + (tft.fontHeight() * 6)));
-
-  tft.drawString("Intensity: ", 15, ((tft.height() / 4) + (tft.fontHeight() * 7.5)) );
-  coverText((tft.textWidth("Intensity: ") + 15), ((tft.height() / 4) + (tft.fontHeight() * 7.5)), tft.textWidth("5555"), tft.fontHeight());
-  tft.drawNumber(intensity, (tft.textWidth("Intensity: ") + 15), ((tft.height() / 4) + (tft.fontHeight() * 7.5)));
+  tft.drawString("Smoke: ", 15, ((tft.height() / 4) + (tft.fontHeight() * 1.5)) );
+  coverText((tft.textWidth("Smoke: ") + 15), ((tft.height() / 4) + (tft.fontHeight() * 1.5)), tft.textWidth("5555"), tft.fontHeight());
+tft.drawString( State, (tft.textWidth("WiFi: ") + 15) , (tft.height() / 4));
 
 }
 

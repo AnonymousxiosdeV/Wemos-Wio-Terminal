@@ -16,6 +16,7 @@ const char* serverOff = "http://192.168.4.1/off";
 
 String State;
 bool isOn;
+int btnState = HIGH;
 
 unsigned long previousMillis = 0;
 const long interval = 5000; 
@@ -29,14 +30,14 @@ void setup() {
   Serial.begin(115200);
   Serial.println();
   
-  pinMode(WIO_KEY_A, INPUT_PULLUP);
-  pinMode(WIO_KEY_B, INPUT_PULLUP);
-  pinMode(WIO_KEY_C, INPUT_PULLUP);
+  // pinMode(WIO_KEY_A, INPUT_PULLUP);
+  // pinMode(WIO_KEY_B, INPUT_PULLUP);
+  // pinMode(WIO_KEY_C, INPUT_PULLUP);
   pinMode(WIO_5S_UP, INPUT_PULLUP);
   pinMode(WIO_5S_DOWN, INPUT_PULLUP);
-  pinMode(WIO_5S_LEFT, INPUT_PULLUP);
-  pinMode(WIO_5S_RIGHT, INPUT_PULLUP);
-  pinMode(WIO_5S_PRESS, INPUT_PULLUP);
+  // pinMode(WIO_5S_LEFT, INPUT_PULLUP);
+  // pinMode(WIO_5S_RIGHT, INPUT_PULLUP);
+  // pinMode(WIO_5S_PRESS, INPUT_PULLUP);
   
   tft.begin();
   tft.setRotation(3);
@@ -63,16 +64,18 @@ void setup() {
   isOn = true;
   Serial.println("");
   Serial.println("Connected to WiFi");
-  reDraw();
 }
 
 void loop() {
 
   unsigned long currentMillis = millis();
   
+  checkPhysicalButton();
+  
   if(currentMillis - previousMillis >= interval) {
   
     if ((WiFi.status() == WL_CONNECTED)) {
+    isOn = true;
       State = httpGETRequest(serverState);
       reDraw();
       
@@ -80,7 +83,9 @@ void loop() {
       previousMillis = currentMillis;
     }
     else {
+    isOn = false;
       Serial.println("WiFi Disconnected");
+      reDraw();
     }
   }
 }
@@ -138,41 +143,24 @@ void reDraw() {
 
   tft.drawString("Smoke: ", 15, ((tft.height() / 4) + (tft.fontHeight() * 1.5)) );
   coverText((tft.textWidth("Smoke: ") + 15), ((tft.height() / 4) + (tft.fontHeight() * 1.5)), tft.textWidth("5555"), tft.fontHeight());
-tft.drawString( State, (tft.textWidth("WiFi: ") + 15) , (tft.height() / 4));
+tft.drawString( State, (tft.textWidth("Smoke: ") + 15) , (tft.height() / 4));
 
 }
 
 void checkPhysicalButton()
 {
 
-  if (digitalRead(WIO_KEY_B) == LOW) {
+  if (digitalRead(WIO_5S_UP) == LOW) {
     // btnState is used to avoid sequential toggles
     if (btnState != LOW) {
-
-      if (brightness >= 125) {
-        brightness = 0;
-        Blynk.virtualWrite(V0, (int)brightness);
-      } else if (brightness <= 124) {
-        brightness = 255;
-        Blynk.virtualWrite(V0, (int)brightness);
-
-      }
-      Serial.print("Brightness is : ");
-      Serial.println(brightness);
-
+      httpGETRequest(serverOn);
       reDraw();
     }
     btnState = LOW;
-  } else if (digitalRead(WIO_KEY_C) == LOW) {
+  } else if (digitalRead(WIO_5S_DOWN) == LOW) {
     // btnState is used to avoid sequential toggles
     if (btnState != LOW) {
-
-      isOn = !isOn;
-      Serial.print("Power is : ");
-      Serial.println(isOn);
-
-      // Update Button Widget
-      Blynk.virtualWrite(V3, isOn);
+  httpGETRequest(serverOff);
       reDraw();
     }
     btnState = LOW;

@@ -19,6 +19,11 @@ String State;
 unsigned long previousMillis = 0;
 const long interval = 5000; 
 
+void coverText(int x, int y, int w, int h) {
+  tft.drawRect(x, y, w, h, 0x0);
+  tft.fillRect(x, y, w, h, 0x0);
+}
+
 void setup() {
   Serial.begin(115200);
   Serial.println();
@@ -32,13 +37,24 @@ void setup() {
   pinMode(WIO_5S_RIGHT, INPUT_PULLUP);
   pinMode(WIO_5S_PRESS, INPUT_PULLUP);
   
+  tft.begin();
+  tft.setRotation(3);
+  tft.setTextColor(TFT_GREEN);
+  tft.setTextSize(2);
+  tft.fillScreen(TFT_BLACK);
+  
 
 
+  if ( digitalRead(WIO_KEY_A) == LOW) {
+    ExtFlashLoader::ExtFlashLoader loader;
+  }
+  
  
   Serial.print("Connecting to ");
   Serial.println(ssid);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
+  tft.drawString("Connecting..", ((tft.width() / 2) - (tft.textWidth("Connecting..") / 2)), (tft.height() / 2)); 
     delay(500);
     Serial.print(".");
   }
@@ -47,10 +63,11 @@ void setup() {
 }
 
 void loop() {
+
   unsigned long currentMillis = millis();
   
   if(currentMillis - previousMillis >= interval) {
-     // Check WiFi connection status
+  
     if ((WiFi.status() == WL_CONNECTED)) {
       State = httpGETRequest(serverState);
       

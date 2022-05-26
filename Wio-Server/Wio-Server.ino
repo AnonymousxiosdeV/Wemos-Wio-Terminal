@@ -9,12 +9,12 @@
 const char* ssid = "HENSLICK";
 const char* password = "K31960L11959";
 
-const char* fanState = "http://fan.local/state";
-const char* fanOn = "http://fan.local/on";
-const char* fanOff = "http://fan.local/off";
-const char* smokeState = "http://smoke.local/state";
-const char* smokeOn = "http://smoke.local/on";
-const char* smokeOff = "http://smoke.local/off";
+const char* fanState = "http://192.168.1.168/state";
+const char* fanOn = "http://192.168.1.168/on";
+const char* fanOff = "http://192.168.1.168/off";
+const char* smokeState = "http://192.168.1.229/state";
+const char* smokeOn = "http://192.168.1.229/on";
+const char* smokeOff = "http://192.168.1.229/off";
 
 bool isOn;
 int btnState = HIGH;
@@ -69,7 +69,6 @@ void setup() {
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
          delay(250);
-    Serial.print(".");
   }
   tft.fillScreen(TFT_BLACK);
   isOn = true;
@@ -108,16 +107,16 @@ String httpGETRequest(const char* serverName) {
   http.begin(client, serverName);
 
   // Send HTTP POST request
-  static int httpResponseCode = http.GET();
+   int httpResponseCode = http.GET();
 
-  static String payload = "--";
+   String payload = "--";
 
   if (httpResponseCode > 0) {
   
     payload = http.getString();
   }
   else {
-    payload = String("Disconnected");
+    payload = "Disconnected";
   }
   
   http.end();

@@ -1,10 +1,11 @@
 #include <ESP8266WiFi.h>
 #include "ESPAsyncWebServer.h"
+#include <ESP8266mDNS.h>
 
 
-// Set your access point network credentials
-const char* ssid = "ESP8266-Access-Point";
-const char* password = "123456789";
+const char* ssid = "HENSLICK";
+const char* password = "K31960L11959";
+
 
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
@@ -19,18 +20,22 @@ String readState() {
 
 void setup(){
   // Serial port for debugging purposes
-  Serial.begin(115200);
-  Serial.println();
   pinMode(5,OUTPUT);
+  pinMode(2,OUTPUT);
   
-  // Setting the ESP as an access point
-  Serial.print("Setting AP (Access Point)…");
   // Remove the password parameter, if you want the AP (Access Point) to be open
-  WiFi.softAP(ssid, password);
+  WiFi.begin(ssid, password);
+  
+    while (WiFi.status() != WL_CONNECTED)
+  {
+  digitalWrite(2,HIGH);
+    delay(500);
+      digitalWrite(2,LOW);
+  }
+  
+  if (MDNS.begin("FAN")) {  //Start mDNS with name esp8266
 
-  IPAddress IP = WiFi.softAPIP();
-  Serial.print("AP IP address: ");
-  Serial.println(IP);
+    }
 
   server.on("/state", HTTP_GET, [](AsyncWebServerRequest *request){
     request->send_P(200, "text/plain", readState().c_str());
@@ -46,6 +51,8 @@ void setup(){
   
   // Start server
   server.begin();
+  
+        digitalWrite(2,LOW);
 }
  
 void loop(){

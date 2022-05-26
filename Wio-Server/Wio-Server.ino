@@ -6,17 +6,20 @@
 #include <cstdint>
 #include <ExtFlashLoader.h>
 
-const char* ssid = "ESP8266-Access-Point";
-const char* password = "123456789";
+const char* ssid = "HENSLICK";
+const char* password = "K31960L11959";
 
-//Your IP address or domain name with URL path
-const char* serverState = "http://192.168.4.1/state";
-const char* serverOn = "http://192.168.4.1/on";
-const char* serverOff = "http://192.168.4.1/off";
+const char* fanState = "http://fan.local/state";
+const char* fanOn = "http://fan.local/on";
+const char* fanOff = "http://fan.local/off";
+const char* smokeState = "http://smoke.local/state";
+const char* smokeOn = "http://smoke.local/on";
+const char* smokeOff = "http://smoke.local/off";
 
-String State;
 bool isOn;
 int btnState = HIGH;
+String Blowing;
+String Smoking;
 
 unsigned long previousMillis = 0;
 const long interval = 5000;
@@ -29,14 +32,12 @@ void coverText(int x, int y, int w, int h) {
 }
 
 void setup() {
-  Serial.begin(115200);
-  Serial.println();
 
   pinMode(WIO_KEY_A, INPUT_PULLUP);
-  // pinMode(WIO_KEY_B, INPUT_PULLUP);
-  // pinMode(WIO_KEY_C, INPUT_PULLUP);
-  pinMode(WIO_5S_UP, INPUT_PULLUP);
-  pinMode(WIO_5S_DOWN, INPUT_PULLUP);
+  pinMode(WIO_KEY_B, INPUT_PULLUP);
+  pinMode(WIO_KEY_C, INPUT_PULLUP);
+  // pinMode(WIO_5S_UP, INPUT_PULLUP);
+  // pinMode(WIO_5S_DOWN, INPUT_PULLUP);
   // pinMode(WIO_5S_LEFT, INPUT_PULLUP);
   // pinMode(WIO_5S_RIGHT, INPUT_PULLUP);
   // pinMode(WIO_5S_PRESS, INPUT_PULLUP);
@@ -53,19 +54,16 @@ void setup() {
     ExtFlashLoader::ExtFlashLoader loader;
   }
 
-
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
   tft.drawString("Connecting", ((tft.width() / 3) - (tft.textWidth("Connecting") / 2)), (tft.height() / 2));
-  delay(250);
+  delay(100);
    tft.drawString("Connecting.", ((tft.width() / 3) - (tft.textWidth("Connecting") / 2)), (tft.height() / 2));
-    delay(250);
+    delay(100);
     tft.drawString("Connecting..", ((tft.width() / 3) - (tft.textWidth("Connecting") / 2)), (tft.height() / 2));
-  delay(250);
+  delay(100);
     tft.drawString("Connecting...", ((tft.width() / 3) - (tft.textWidth("Connecting") / 2)), (tft.height() / 2));
-      delay(250);
+      delay(100);
     tft.drawString("Connecting....", ((tft.width() / 3) - (tft.textWidth("Connecting") / 2)), (tft.height() / 2));
-      delay(250);
+      delay(100);
     tft.drawString("Connecting.....", ((tft.width() / 3) - (tft.textWidth("Connecting") / 2)), (tft.height() / 2));
   
   WiFi.begin(ssid, password);
@@ -75,8 +73,9 @@ void setup() {
   }
   tft.fillScreen(TFT_BLACK);
   isOn = true;
-  Serial.println("");
-  Serial.println("Connected to WiFi");
+  Blowing = httpGETRequest(fanState);
+  Smoking = httpGETRequest(smokeState);
+  reDraw();
 }
 
 void loop() {
@@ -85,22 +84,20 @@ void loop() {
 
   checkPhysicalButton();
 
-  if (currentMillis - previousMillis >= interval) {
+   if (currentMillis - previousMillis >= interval) {
 
     if ((WiFi.status() == WL_CONNECTED)) {
       isOn = true;
-      State = httpGETRequest(serverState);
+      // State = httpGETRequest(serverState);
       reDraw();
-
-      // save the last HTTP GET Request
       previousMillis = currentMillis;
     }
     else {
       isOn = false;
-      Serial.println("WiFi Disconnected");
       reDraw();
     }
   }
+  
 }
 
 String httpGETRequest(const char* serverName) {
@@ -111,20 +108,18 @@ String httpGETRequest(const char* serverName) {
   http.begin(client, serverName);
 
   // Send HTTP POST request
-  int httpResponseCode = http.GET();
+  static int httpResponseCode = http.GET();
 
-  String payload = "--";
+  static String payload = "--";
 
   if (httpResponseCode > 0) {
-    // Serial.print("HTTP Response code: ");
-    // Serial.println(httpResponseCode);
+  
     payload = http.getString();
   }
   else {
-    Serial.print("Error code: ");
-    Serial.println(httpResponseCode);
+    payload = String("Disconnected");
   }
-  // Free resources
+  
   http.end();
 
   return payload;
@@ -147,33 +142,44 @@ void reDraw() {
 
   tft.drawString("WiFi: ", 15, (tft.height() / 4));
   if (isOn) {
-    coverText((tft.textWidth("WiFi: ") + 15) , (tft.height() / 4), tft.textWidth("Is Connected"), tft.fontHeight());
-    tft.drawString("Is Connected", (tft.textWidth("WiFi: ") + 15), (tft.height() / 4));
+    coverText((tft.textWidth("WiFi: ") + 15) , (tft.height() / 4), tft.textWidth("Connected"), tft.fontHeight());
+    tft.drawString("Connected", (tft.textWidth("WiFi: ") + 15), (tft.height() / 4));
   } else {
-    coverText((tft.textWidth("WiFi: ") + 15), (tft.height() / 4), tft.textWidth("Not Connected"), tft.fontHeight());
-    tft.drawString("Not Connected", (tft.textWidth("WiFi: ") + 15) , (tft.height() / 4));
+    coverText((tft.textWidth("WiFi: ") + 15), (tft.height() / 4), tft.textWidth("Disconnected"), tft.fontHeight());
+    tft.drawString("Disconnected", (tft.textWidth("WiFi: ") + 15) , (tft.height() / 4));
   }
 
   tft.drawString("Smoke: ", 15, ((tft.height() / 4) + (tft.fontHeight() * 1.5)) );
-  coverText((tft.textWidth("Smoke: ") + 15), ((tft.height() / 4) + (tft.fontHeight() * 1.5)), tft.textWidth("5555"), tft.fontHeight());
-  tft.drawString( State, (tft.textWidth("Smoke: ") + 15) , ((tft.height() / 4) + (tft.fontHeight() * 1.5)));
+  coverText((tft.textWidth("Smoke: ") + 15), ((tft.height() / 4) + (tft.fontHeight() * 1.5)), tft.textWidth("Disconnected"), tft.fontHeight());
+  tft.drawString( Smoking, (tft.textWidth("Smoke: ") + 15) , ((tft.height() / 4) + (tft.fontHeight() * 1.5)));
+  
+    tft.drawString("Fan: ", 15, ((tft.height() / 4) + (tft.fontHeight() * 3)) );
+  coverText((tft.textWidth("Fan: ") + 15), ((tft.height() / 4) + (tft.fontHeight() * 3)), tft.textWidth("Disconnected"), tft.fontHeight());
+  tft.drawString( Blowing, (tft.textWidth("Fan: ") + 15) , ((tft.height() / 4) + (tft.fontHeight() * 3)));
 
 }
 
 void checkPhysicalButton()
 {
 
-  if (digitalRead(WIO_5S_UP) == LOW) {
-    // btnState is used to avoid sequential toggles
+  if (digitalRead(WIO_KEY_B) == LOW) {
     if (btnState != LOW) {
-      State = httpGETRequest(serverOn);
+    if (Blowing.equals("Off")){
+      Blowing = httpGETRequest(fanOn);
+    } else {
+      Blowing = httpGETRequest(fanOff);
+    }
       reDraw();
     }
     btnState = LOW;
-  } else if (digitalRead(WIO_5S_DOWN) == LOW) {
-    // btnState is used to avoid sequential toggles
+  } else if (digitalRead(WIO_KEY_C) == LOW) {
+
     if (btnState != LOW) {
-      State = httpGETRequest(serverOff);
+        if (Smoking.equals("Off")){
+      Smoking = httpGETRequest(smokeOn);
+      } else {
+      Smoking = httpGETRequest(smokeOff);
+    }
       reDraw();
     }
     btnState = LOW;

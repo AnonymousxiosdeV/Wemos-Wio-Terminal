@@ -56,10 +56,21 @@ void setup() {
 
   Serial.print("Connecting to ");
   Serial.println(ssid);
+  tft.drawString("Connecting", ((tft.width() / 3) - (tft.textWidth("Connecting") / 2)), (tft.height() / 2));
+  delay(250);
+   tft.drawString("Connecting.", ((tft.width() / 3) - (tft.textWidth("Connecting") / 2)), (tft.height() / 2));
+    delay(250);
+    tft.drawString("Connecting..", ((tft.width() / 3) - (tft.textWidth("Connecting") / 2)), (tft.height() / 2));
+  delay(250);
+    tft.drawString("Connecting...", ((tft.width() / 3) - (tft.textWidth("Connecting") / 2)), (tft.height() / 2));
+      delay(250);
+    tft.drawString("Connecting....", ((tft.width() / 3) - (tft.textWidth("Connecting") / 2)), (tft.height() / 2));
+      delay(250);
+    tft.drawString("Connecting.....", ((tft.width() / 3) - (tft.textWidth("Connecting") / 2)), (tft.height() / 2));
+  
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
-    tft.drawString("Connecting..", ((tft.width() / 2) - (tft.textWidth("Connecting..") / 2)), (tft.height() / 2));
-    delay(500);
+         delay(250);
     Serial.print(".");
   }
   tft.fillScreen(TFT_BLACK);

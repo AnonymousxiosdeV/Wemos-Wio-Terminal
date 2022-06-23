@@ -1,6 +1,9 @@
 #include <ESP8266WiFi.h>
 #include "ESPAsyncWebServer.h"
 #include <ESP8266mDNS.h>
+#include <ESP8266WiFi.h>
+#include <ESPAsyncTCP.h>
+#include <AsyncElegantOTA.h>
 
 
 const char* ssid = "HENSLICK";
@@ -11,30 +14,39 @@ const char* password = "K31960L11959";
 AsyncWebServer server(80);
 
 String readState() {
- if (digitalRead(5) == HIGH){
-  return String("On");
- } else {
-  return String("Off");
- }
+  if (digitalRead(5) == HIGH) {
+    return String("On");
+  } else {
+    return String("Off");
+  }
 }
 
-void setup(){
+String readState2() {
+  if (digitalRead(4) == HIGH) {
+    return String("On");
+  } else {
+    return String("Off");
+  }
+}
+
+void setup() {
   // Serial port for debugging purposes
   pinMode(5, OUTPUT);
+  pinMode(4, OUTPUT);
   pinMode(2, OUTPUT);
-  
+
   // Remove the password parameter, if you want the AP (Access Point) to be open
-  Serial.begin(9600);
+  Serial.begin(115200);
   WiFi.mode(WIFI_STA);
 
   WiFi.begin(ssid, password);
-  
-    while (WiFi.status() != WL_CONNECTED)
+
+  while (WiFi.status() != WL_CONNECTED)
   {
     Serial.println(".");
-  digitalWrite(2,LOW);
+    digitalWrite(2, LOW);
     delay(500);
-      digitalWrite(2,HIGH);
+    digitalWrite(2, HIGH);
   }
 
   Serial.println("");
@@ -44,37 +56,59 @@ void setup(){
   Serial.println(WiFi.localIP());
 
   MDNS.begin("fan");
-  
-   //if (!MDNS.begin("fan")) { //Start mDNS with name esp8266
-   // Serial.println("Error setting up MDNS responder!");
+
+  //if (!MDNS.begin("fan")) { //Start mDNS with name esp8266
+  // Serial.println("Error setting up MDNS responder!");
   //  while (1) {
-   //   delay(1000);
-   // }
+  //   delay(1000);
+  // }
   //  }
 
-     MDNS.addService("http", "tcp", 80);
+  MDNS.addService("http", "tcp", 80);
 
-  server.on("/state", HTTP_GET, [](AsyncWebServerRequest *request){
+  server.on("/state", HTTP_GET, [](AsyncWebServerRequest * request) {
     request->send_P(200, "text/plain", readState().c_str());
-  //  Serial.println("Status Called");
+    //  Serial.println("Status Called");
   });
-  server.on("/on", HTTP_GET, [](AsyncWebServerRequest *request){
-  digitalWrite(5,HIGH);
-  request->send_P(200, "text/plain", readState().c_str());
-  // Serial.println("on called");
-  });
-  server.on("/off", HTTP_GET, [](AsyncWebServerRequest *request){
-    digitalWrite(5,LOW);
+  server.on("/on", HTTP_GET, [](AsyncWebServerRequest * request) {
+    digitalWrite(5, HIGH);
     request->send_P(200, "text/plain", readState().c_str());
-   // Serial.println("off called");
+    // Serial.println("on called");
   });
-  
+  server.on("/off", HTTP_GET, [](AsyncWebServerRequest * request) {
+    digitalWrite(5, LOW);
+    request->send_P(200, "text/plain", readState().c_str());
+    // Serial.println("off called");
+  });
+
+
+  server.on("/state2", HTTP_GET, [](AsyncWebServerRequest * request) {
+    request->send_P(200, "text/plain", readState2().c_str());
+    //  Serial.println("Status Called");
+  });
+  server.on("/on2", HTTP_GET, [](AsyncWebServerRequest * request) {
+    digitalWrite(4, HIGH);
+    request->send_P(200, "text/plain", readState2().c_str());
+    // Serial.println("on called");
+  });
+  server.on("/off2", HTTP_GET, [](AsyncWebServerRequest * request) {
+    digitalWrite(4, LOW);
+    request->send_P(200, "text/plain", readState2().c_str());
+    // Serial.println("off called");
+  });
+
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest * request) {
+    request->send(200, "text/plain", "Hi! This is a sample response.");
+  });
+
+  AsyncElegantOTA.begin(&server);
+
   // Start server
   server.begin();
-  
-        digitalWrite(2,HIGH);
+
+  digitalWrite(2, HIGH);
 }
- 
-void loop(){
-  
+
+void loop(void) {
+
 }

@@ -20,25 +20,25 @@ const unsigned long footWait = 5000;
 
 String readState() {
   if (digitalRead(5) == HIGH) {
-    return String("On");
+    return String("TopOn");
   } else {
-    return String("Off");
+    return String("TopOff");
   }
 }
 
 String readState2() {
   if (digitalRead(4) == HIGH) {
-    return String("On");
+    return String("BottomOn");
   } else {
-    return String("Off");
+    return String("BottomOff");
   }
 }
 
 String readAutoState() {
   if (startRunning == true) {
-    return String("On");
+    return String("AutoOn");
   } else {
-    return String("Off");
+    return String("AutoOff");
   }
 }
 

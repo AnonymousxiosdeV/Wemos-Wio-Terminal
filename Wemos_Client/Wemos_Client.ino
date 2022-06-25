@@ -1,7 +1,5 @@
 #include <ESP8266WiFi.h>
 #include "ESPAsyncWebServer.h"
-// #include <ESP8266mDNS.h>
-//#include <ESP8266WiFi.h>
 #include <ESPAsyncTCP.h>
 #include <AsyncElegantOTA.h>
 
@@ -45,7 +43,6 @@ String readAutoState() {
 }
 
 void setup() {
-  // Serial port for debugging purposes
   pinMode(5, OUTPUT);
   pinMode(4, OUTPUT);
   pinMode(2, OUTPUT);

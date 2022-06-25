@@ -60,7 +60,7 @@ void setup() {
 
   while (WiFi.status() != WL_CONNECTED)
   {
-    Serial.println(".");
+    // Serial.println(".");
     digitalWrite(2, LOW);
     delay(500);
     digitalWrite(2, HIGH);
@@ -118,6 +118,8 @@ void setup() {
   server.on("/", HTTP_GET, [](AsyncWebServerRequest * request) {
     request->send(200, "text/plain", "Hi! This is a sample response.");
   });
+
+
 
   server.on("/autorun", HTTP_GET, [](AsyncWebServerRequest * request) {
     topMillis = millis();

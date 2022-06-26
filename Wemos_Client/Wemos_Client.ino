@@ -60,7 +60,7 @@ void sendState(int m){
 }
 
 void setup() {
-randomSeed(analogRead(A1));
+randomSeed(analogRead(A0));
   pinMode(5, OUTPUT);
   pinMode(4, OUTPUT);
   pinMode(2, OUTPUT);

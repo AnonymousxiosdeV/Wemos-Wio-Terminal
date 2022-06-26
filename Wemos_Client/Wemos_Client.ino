@@ -2,12 +2,15 @@
 #include "ESPAsyncWebServer.h"
 #include <ESPAsyncTCP.h>
 #include <AsyncElegantOTA.h>
+#include <WiFiUdp.h>
+#include <OSCMessage.h>
 
 const char* ssid = "HENSLICK";
 const char* password = "K31960L11959";
 
 // Create AsyncWebServer object on port 80
 AsyncWebServer server(80);
+WiFiUDP Udp;
 
 unsigned long topMillis;
 unsigned long footMillis;
@@ -15,8 +18,11 @@ unsigned long currentMillis;
 bool startRunning;
 const unsigned long footTime = 1000;
 const unsigned long topTime = 150;
-const unsigned long topWait = 1000;
-const unsigned long footWait = 5000;
+unsigned long topWait = 1000;
+unsigned long footWait = 5000;
+const IPAddress dstIp(192,168,1,149);     // EditThis: The destination for OSC messages.
+const unsigned int dstPort = 9000;  // EditThis: The destination port for OSC messages.
+const unsigned int localPort = 8765; // EditThis: The local port listening for inbound OSC
 
 String readState() {
   if (digitalRead(5) == HIGH) {
@@ -42,7 +48,19 @@ String readAutoState() {
   }
 }
 
+void sendState(int m){
+    
+    OSCMessage msg("/State");
+    msg.add(m);
+    Udp.beginPacket(dstIp, dstPort);
+    msg.send(Udp);
+    Udp.endPacket();
+    msg.empty();
+
+}
+
 void setup() {
+randomSeed(analogRead(A1));
   pinMode(5, OUTPUT);
   pinMode(4, OUTPUT);
   pinMode(2, OUTPUT);
@@ -79,35 +97,45 @@ void setup() {
     //  }
 
     //  MDNS.addService("http", "tcp", 80);
-  */
+  
 
   server.on("/state", HTTP_GET, [](AsyncWebServerRequest * request) {
     request->send_P(200, "text/plain", readState().c_str());
     //  Serial.println("Status Called");
   });
+  
+  */
+  
   server.on("/on", HTTP_GET, [](AsyncWebServerRequest * request) {
     digitalWrite(5, HIGH);
+    sendState(1);
     request->send_P(200, "text/plain", readState().c_str());
     // Serial.println("on called");
   });
   server.on("/off", HTTP_GET, [](AsyncWebServerRequest * request) {
     digitalWrite(5, LOW);
+        sendState(0);
     request->send_P(200, "text/plain", readState().c_str());
     // Serial.println("off called");
   });
 
-
-  server.on("/state2", HTTP_GET, [](AsyncWebServerRequest * request) {
+/*
+  server.on("/footstate", HTTP_GET, [](AsyncWebServerRequest * request) {
     request->send_P(200, "text/plain", readState2().c_str());
     //  Serial.println("Status Called");
   });
+  
+*/
+  
   server.on("/on2", HTTP_GET, [](AsyncWebServerRequest * request) {
     digitalWrite(4, HIGH);
+    sendState(3);
     request->send_P(200, "text/plain", readState2().c_str());
     // Serial.println("on called");
   });
   server.on("/off2", HTTP_GET, [](AsyncWebServerRequest * request) {
     digitalWrite(4, LOW);
+    sendState(2);
     request->send_P(200, "text/plain", readState2().c_str());
     // Serial.println("off called");
   });
@@ -122,6 +150,7 @@ void setup() {
     topMillis = millis();
     footMillis = millis();
     startRunning = true;
+    sendState(5);
     request->send_P(200, "text/plain", readAutoState().c_str());
     // Serial.println("off called");
   });
@@ -133,6 +162,7 @@ void setup() {
     startRunning = false;
     digitalWrite(5, LOW);
     digitalWrite(4, LOW);
+    sendState(4);
     request->send_P(200, "text/plain", readAutoState().c_str());
     // Serial.println("off called");
   });
@@ -141,6 +171,8 @@ void setup() {
 
   // Start server
   server.begin();
+  
+  Udp.begin(localPort);
 
   digitalWrite(2, HIGH);
 }
@@ -156,24 +188,30 @@ void loop(void) {
 
 void autoRun() {
 
-  if ((digitalRead(5) == LOW) && (currentMillis - topMillis >= topWait)) {
+  if ((digitalRead(5) == LOW) && (currentMillis - topMillis >= topWait) && (digitalRead(4)==LOW)) {
     digitalWrite(5, HIGH);
+    sendState(1);
     topMillis = currentMillis;
   }
 
   if ((digitalRead(5) == HIGH) && (currentMillis - topMillis >= topTime)) {
     digitalWrite(5, LOW);
+    topWait = random(250,2000);
     topMillis = currentMillis;
+    sendState(0);
   }
 
-  if ((digitalRead(4) == LOW) && (currentMillis - footMillis >= footWait)) {
+  if ((digitalRead(4) == LOW) && (currentMillis - footMillis >= footWait) && (digitalRead(5)==LOW)) {
     digitalWrite(4, HIGH);
     footMillis = currentMillis;
+    sendState(3);
   }
 
   if ((digitalRead(4) == HIGH) && (currentMillis - footMillis >= footTime)) {
     digitalWrite(4, LOW);
+    footWait = random(3500,5500);
     footMillis = currentMillis;
+    sendState(2);
   }
 
 }

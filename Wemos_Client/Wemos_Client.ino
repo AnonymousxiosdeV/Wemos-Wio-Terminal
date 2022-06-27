@@ -17,7 +17,7 @@ unsigned long footMillis;
 unsigned long currentMillis;
 bool startRunning;
 const unsigned long footTime = 1000;
-const unsigned long topTime = 150;
+const unsigned long topTime = 100;
 unsigned long topWait = 1000;
 unsigned long footWait = 5000;
 const IPAddress dstIp(192,168,1,149);     // EditThis: The destination for OSC messages.
@@ -163,6 +163,8 @@ randomSeed(analogRead(A0));
     digitalWrite(5, LOW);
     digitalWrite(4, LOW);
     sendState(4);
+    sendState(2);
+    sendState(0);
     request->send_P(200, "text/plain", readAutoState().c_str());
     // Serial.println("off called");
   });

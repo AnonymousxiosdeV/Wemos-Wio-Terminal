@@ -41,7 +41,7 @@ void setup() {
   pinMode(2, OUTPUT);
 
   // Remove the password parameter, if you want the AP (Access Point) to be open
-  //  Serial.begin(115200);
+   Serial.begin(115200);
   WiFi.mode(WIFI_STA);
 
   WiFi.begin(ssid, password);
@@ -54,12 +54,12 @@ void setup() {
     digitalWrite(2, HIGH);
   }
 
-  /* Serial.println("");
+ Serial.println("");
     Serial.print("Connected to ");
     Serial.println(ssid);
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
-
+  /*
     MDNS.begin("fan");
 
     //if (!MDNS.begin("fan")) { //Start mDNS with name esp8266

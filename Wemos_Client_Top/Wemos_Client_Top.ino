@@ -4,8 +4,8 @@
 #include <AsyncElegantOTA.h>
 #include <WiFiUdp.h>
 #include <OSCMessage.h>
-#define motorD D1
-#define motorSpeed D3
+#define motorD 0
+#define motorSpeed 5
 
 
 const char* ssid = "HENSLICK";
@@ -34,7 +34,7 @@ String readState() {
 
 void sendState(int m) {
 
-  OSCMessage msg("/State");
+  OSCMessage msg("/Top");
   msg.add(m);
   Udp.beginPacket(dstIp, dstPort);
   msg.send(Udp);
@@ -47,6 +47,9 @@ void setup() {
   randomSeed(analogRead(A0));
   pinMode(motorD, OUTPUT);
   pinMode(motorSpeed, OUTPUT);
+  pinMode(2, OUTPUT);
+  startRunning = false;
+
 
   // Remove the password parameter, if you want the AP (Access Point) to be open
   Serial.begin(115200);
@@ -133,14 +136,14 @@ void autoRun() {
 
   if (currentMillis - topMillis >= topWait) {
     digitalWrite(motorD, HIGH);
-    digitalWrite(motorSpeed, 255);
+    digitalWrite(motorSpeed, HIGH);
     sendState(1);
     topMillis = currentMillis;
   }
 
   if (currentMillis - topMillis >= topTime) {
     digitalWrite(motorD, LOW);
-    digitalWrite(motorSpeed, 255);    
+    digitalWrite(motorSpeed, HIGH);    
     topWait = random(150, 3000);
     topMillis = currentMillis;
     sendState(0);

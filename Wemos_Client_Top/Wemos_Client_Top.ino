@@ -24,6 +24,25 @@ const IPAddress dstIp(192, 168, 1, 149);  // EditThis: The destination for OSC m
 const unsigned int dstPort = 9000;  // EditThis: The destination port for OSC messages.
 const unsigned int localPort = 8765; // EditThis: The local port listening for inbound OSC
 
+unsigned long previousMillis = 0;
+unsigned long interval = 30000;
+
+void initWiFi() {
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  Serial.print("Connecting to WiFi ..");
+  while (WiFi.status() != WL_CONNECTED) {
+    Serial.print('.');
+        digitalWrite(2, LOW);
+            delay(1000);
+    digitalWrite(2, HIGH);
+  }
+  Serial.println(WiFi.localIP());
+  //The ESP8266 tries to reconnect automatically when the connection is lost
+  WiFi.setAutoReconnect(true);
+  WiFi.persistent(true);
+}
+
 String readState() {
   if (digitalRead(5) == HIGH) {
     return String("TopOn");
@@ -53,24 +72,13 @@ void setup() {
 
   // Remove the password parameter, if you want the AP (Access Point) to be open
   Serial.begin(115200);
-  WiFi.mode(WIFI_STA);
-
-  WiFi.begin(ssid, password);
+  
+  initWiFi();
 
   while (WiFi.status() != WL_CONNECTED)
   {
     // Serial.println(".");
-    digitalWrite(2, LOW);
-    delay(500);
-    digitalWrite(2, HIGH);
   }
-
-  Serial.println("");
-  Serial.print("Connected to ");
-  Serial.println(ssid);
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
-
 
   /*
       MDNS.begin("fan");
@@ -128,6 +136,25 @@ void loop(void) {
   if (startRunning == true) {
     currentMillis = millis();
     autoRun();
+  }
+  
+    unsigned long wifiMillis = millis();
+  if (wifiMillis - previousMillis >=interval){
+    switch (WiFi.status()){
+      case WL_NO_SSID_AVAIL:
+        Serial.println("Configured SSID cannot be reached");
+        break;
+      case WL_CONNECTED:
+        Serial.println("Connection successfully established");
+        break;
+      case WL_CONNECT_FAILED:
+        Serial.println("Connection failed");
+        break;
+    }
+    Serial.printf("Connection status: %d\n", WiFi.status());
+    Serial.print("RRSI: ");
+    Serial.println(WiFi.RSSI());
+    previousMillis = wifiMillis;
   }
 
 }
